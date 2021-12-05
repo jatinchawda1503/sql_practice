@@ -1,0 +1,16 @@
+--1 no of students in the database
+select count(1) from students;
+
+--2 no of population for each year
+select student_population_year_ref, count(1) from students
+group by student_population_year_ref;
+
+--3 population per program 
+select student_population_code_ref, count(1) from students
+group by student_population_code_ref;
+
+--4 calculate age by datebirth
+select contact_first_name, date_part('year',age(contact_birthdate)) as contact_age,* from contacts;
+
+--5 adding column to contact_age
+alter table contacts add column contact_age integer null;

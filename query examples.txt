@@ -1,0 +1,20 @@
+select  grade_score, count(grade_score) as students_number, rank () over (order by grade_score DESC)from grades left outer 
+join students on grade_student_epita_email_ref = students.student_epita_email 
+group by   grades.grade_score
+
+
+select AVG(grade_score)from grades where grade_course_code_ref = 'PG_PYTHON'
+
+select attendance_course_ref , count(*) from attendance where attendance_student_ref = 'jamal.vanausdal@epita.fr' and attendance_presence = 1 GROUP by attendance.attendance_presence, attendance.attendance_course_rev, attendance_course_ref ORDER by attendance_course_rev desc
+
+select * from students where students.student_population_period_ref = 'FALL'
+
+select * from students where student_population_year_ref between 2021-01-01 and 2020
+
+select * from students where student_enrollment_status = 'completed'
+
+
+select attendance_student_ref  as Email,count(*) as no_Attendance from attendance where attendance_presence = 1 group by attendance_student_ref 
+
+
+select grade_student_epita_email_ref, avg(grade_score) as Average_Grade from grades group by grade_student_epita_email_ref order by Average_Grade DESC
