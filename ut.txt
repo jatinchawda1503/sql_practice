@@ -1,0 +1,130 @@
+--1--
+select * from students 
+where student_enrollment_status = 'completed' 
+and student_population_period_ref ='SPRING' 
+and student_population_year_ref ='2021' 
+and student_population_code_ref ='DSA';
+---2---
+select count(*) from students 
+where student_enrollment_status = 'completed' 
+and student_population_period_ref ='SPRING' 
+and student_population_year_ref ='2021' 
+and student_population_code_ref ='DSA';
+---3---
+select distinct(grade_course_code_ref), grade_exam_type_ref
+from grades;
+---4---
+select grade_student_epita_email_ref, grade_score 
+from grades
+where grade_student_epita_email_ref = 'simona.morasca@epita.fr'
+order by grade_score desc;
+---5---
+select * from grades 
+where grade_course_code_ref ='SE_ADV_JAVA';
+---6----
+select grade_student_epita_email_ref,grade_course_code_ref,grade_exam_type_ref,grade_score, 
+rank () over (order by grade_score desc) rank
+from grades
+where grade_course_code_ref ='DT_RDBMS' and grade_exam_type_ref ='Project';
+---7----
+select grade_student_epita_email_ref,grade_course_code_ref,grade_exam_type_ref,grade_score, 
+rank () over (order by grade_score desc) rank
+from grades
+where grade_course_code_ref ='DT_RDBMS';
+---8---
+select grade_student_epita_email_ref,grade_course_code_ref,grade_exam_type_ref,grade_score, 
+rank () over (order by grade_score desc) rank
+from grades;
+
+---09) get all courses for one program---
+select program_assignment, program_course_code_ref from programs 
+where program_assignment ='DSA';
+
+----10----
+select * from programs
+where program_assignment between 'DSA' and 'ISM';
+
+---11----
+select * from programs
+where program_course_code_ref ='PG_PYTHON';
+
+--12--
+select * from courses
+where duration = (select max (duration) from courses);
+
+--13--
+select * 
+from courses
+where courses.duration in (select courses.duration from courses group by courses.duration having count(courses.duration) > 1);
+----fhhfd----
+select course_code, duration from courses
+where courses.duration in (select count(duration) > 1 from courses);
+---14---
+select * from sessions
+where session_course_ref ='SE_ADV_JAVA';
+
+--15--
+select * from sessions 
+where session_population_period = 'SPRING';
+
+---16---
+select attendance_student_ref, attendance_presence from attendance
+where attendance_student_ref ='jamal.vanausdal@epita.fr';
+
+--17--
+select * from attendance
+where attendance_student_ref ='jamal.vanausdal@epita.fr';
+
+---18---
+select max(attendance_student_ref) from attendance
+where attendance_presence = '0';
+
+---hard----
+
+---1.) get all exams for a specific course---
+select course_name, exam_type 
+from courses
+join exams on exams.exam_course_code = courses.course_code 
+where exam_course_code = 'SE_ADV_JAVA';
+
+----2.) get all grades for a specific student--
+select grade_student_epita_email_ref, grade_course_code_ref, grade_exam_type_ref,grade_score from grades
+where grade_student_epita_email_ref ='marjory.mastella@epita.fr';
+
+---3.) Get the final grades for a student on a specifique course or all courses--
+
+select grade_student_epita_email_ref, course_name, grade_score 
+from grades 
+inner join courses on courses.course_code = grades.grade_course_code_ref 
+where grade_student_epita_email_ref = 'simona.morasca@epita.fr' and course_name ='Python fundamentals';
+
+---4.) Get the students with the top 5 scores for specific course
+select * from grades
+where grade_course_code_ref = 'SE_ADV_JS'
+order by grade_score desc
+limit 5;
+
+---5.) Get the students with the top 5 scores for specific course per rank-----
+select grade_student_epita_email_ref, grade_student_epita_email_ref, grade_exam_type_ref,grade_score,
+rank () over (order by grade_score desc) 
+from grades
+where grade_course_code_ref = 'SE_ADV_JS'
+limit 5;
+
+---6.) Get the Class average for a course---
+select AVG(grade_score) from grades
+where grade_course_code_ref ='SE_ADV_JS';
+
+---bonuses---
+---1.) Get a student full report of grades and attendances---
+select student_epita_email,grade_course_code_ref, grade_exam_type_ref, grade_score, attendance_course_ref, attendance_session_date_ref, attendance_presence
+from students
+join grades on grades.grade_student_epita_email_ref = students.student_epita_email 
+join attendance on attendance.attendance_student_ref = students.student_epita_email;
+
+---2.)---- 
+select student_epita_email,grade_course_code_ref, grade_exam_type_ref, grade_score, attendance_course_ref, attendance_session_date_ref, attendance_presence, 
+rank () over (order by grade_score desc) rank
+from students
+join grades on grades.grade_student_epita_email_ref = students.student_epita_email 
+join attendance on attendance.attendance_student_ref = students.student_epita_email;
