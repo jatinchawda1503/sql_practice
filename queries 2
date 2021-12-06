@@ -1,0 +1,160 @@
+-- Get all enrolled students for a specific period,program,year ?
+select s.* from students s where s.student_population_period_ref ='SPRING' and s.student_population_code_ref = 'SE' and s.student_population_year_ref =2021;
+
+-- Get number of enrolled students for a specific period,program,year
+select count(s.student_enrollment_status) from students s where s.student_population_period_ref ='SPRING' and s.student_population_code_ref = 'SE' and s.student_population_year_ref =2021;
+
+-- Get All defined exams for a course from grades table
+select distinct(g.grade_exam_type_ref) from grades g where g.grade_course_code_ref ='SE_ADV_JAVA';
+
+-- Get all grades for a student
+select  g.grade_score from grades g where g.grade_student_epita_email_ref ='viva.toelkes@epita.fr';
+
+-- Get all grades for a specific Exam
+select g.grade_score from grades g where g.grade_exam_type_ref = 'Project';
+
+
+-- Get students Ranks in an Exam for a course
+-- solution 1 per intake & year
+select rank() over(order by g.grade_score desc), g.grade_score from students s right join grades g 
+on s.student_epita_email = g.grade_student_epita_email_ref where g.grade_student_epita_email_ref is not null and s.student_population_year_ref =2021 and s.student_population_period_ref ='SPRING' and g.grade_course_code_ref ='SE_ADV_JAVA' and g.grade_exam_type_ref ='Project';
+
+-- solution 2 general
+select rank() over(order by g.grade_score desc), g.grade_score from grades g where  g.grade_course_code_ref ='SE_ADV_JAVA' and g.grade_exam_type_ref ='Project';
+
+-- Get students Ranks in all exams for a course
+-- solution 1 per intake & year
+select rank() over(order by g.grade_score desc), g.grade_score from students s right join grades g on s.student_epita_email = g.grade_student_epita_email_ref where g.grade_student_epita_email_ref is not null and s.student_population_year_ref =2021 and s.student_population_period_ref ='SPRING' and g.grade_course_code_ref ='SE_ADV_JAVA';
+
+-- solution 2 general
+select rank() over(order by g.grade_score desc), g.grade_score from grades g where  g.grade_course_code_ref ='SE_ADV_JAVA';
+
+-- Get students Rank in all exams in all courses
+-- solution 1 per intake & year
+select rank() over(order by g.grade_score desc), g.grade_score from students s right join grades g on s.student_epita_email = g.grade_student_epita_email_ref where g.grade_student_epita_email_ref is not null and s.student_population_year_ref =2021 and s.student_population_period_ref ='SPRING';
+
+-- solution 2 general
+select rank() over(order by g.grade_score desc), g.grade_score from grades g;
+
+-- Get all courses for one program
+select p.program_course_code_ref from programs p where p.program_assignment ='SE';
+
+-- Get courses in common between 2 programs
+SELECT distinct(program_course_code_ref) program_assignment FROM programs where program_assignment = 'SE'
+intersect
+SELECT distinct(program_course_code_ref) program_assignment FROM programs where program_assignment = 'AIs'
+
+-- Get all programs following a certain course
+select p.program_assignment from programs p where p.program_course_code_ref = 'DT_RDBMS';
+
+-- get course with the biggest duration
+-- solution 1
+select c.* from courses c order by c.duration desc limit 1;
+
+-- solution 2
+select c.* from courses c where c.duration = (select max(c2.duration) from courses c2);
+
+-- get courses with the same duration 
+select * from courses c where c.duration in (select c2.duration from courses c2 group by c2.duration having count(c2.duration) > 1) order by c.duration asc
+
+
+-- Get all sessions for a specific course
+-- solution 1
+select s.* from sessions s where s.session_course_ref ='DT_RDBMS';
+
+-- solution 2
+select s.* from sessions s where s.session_course_ref ='DT_RDBMS' and s.session_population_year =2020 and s.session_population_period ='FALL';
+
+-- Get all session for a certain period
+select s.* from sessions s where s.session_date  >= '2021-01-04' and s.session_date  <= '2021-01-31';
+
+
+-- Get one student attendance sheet
+select a.attendance_course_ref, a.attendance_session_date_ref, a.attendance_session_start_time, a.attendance_session_end_time,
+case when a.attendance_presence = 1 then 'Present'
+	else 'Absent' 
+end as marksheet
+from attendance a where a.attendance_student_ref = 'jamal.vanausdal@epita.fr'
+
+-- Get one student summary of attendance
+select
+  total_attendance, 
+  sum_attendance,
+  (sum_attendance / total_attendance :: float)* 100 attendance_percentage, 
+  res.attendance_student_ref, 
+  res.attendance_course_ref, 
+  res.attendance_population_year_ref 
+from 
+  (
+    select 
+      count(1) as total_attendance, 
+      sum(s.attendance_presence) as sum_attendance, 
+      s.attendance_student_ref, 
+      s.attendance_course_ref, 
+      s.attendance_population_year_ref 
+    from 
+      attendance as s 
+    where 
+      s.attendance_student_ref = 'albina.glick@epita.fr' 
+    group by 
+      s.attendance_student_ref, 
+      s.attendance_course_ref, 
+      s.attendance_population_year_ref
+  ) res 
+order by 
+  attendance_percentage
+  
+
+-- Get student with most absences
+  select * from (select attendance_student_ref , count(attendance_presence) from attendance where attendance_presence = 0 group by attendance_student_ref) as OP1 order by OP1.count desc limit 1;
+  
+-- Get all exams for a specific Course
+select e.exam_type from courses c right join exams e on e.exam_course_code = c.course_code where e.exam_course_code is not null and c.course_code  = 'DT_RDBMS';
+
+
+-- Get all Grades for a specific Student
+select grade_score from grades where grade_student_epita_email_ref = 'simona.morasca@epita.fr'
+
+-- Get the students with the top 5 scores for specific course
+select OP4.contact_first_name,OP4.contact_last_name,OP4.grade_score from
+((select OP2.student_contact_ref , OP2.grade_score from
+((select grade_student_epita_email_ref ,grade_score from grades where grade_course_code_ref = 'CS_DATA_PRIV' order by grade_score desc limit 5) as OP1
+left join students on OP1.grade_student_epita_email_ref = students.student_epita_email) as OP2) as OP3
+left join contacts on OP3.student_contact_ref = contacts.contact_email) as OP4
+
+-- Get the students with the top 5 scores for specific course per rank
+select grade_student_epita_email_ref , rank () over (partition by grade_course_rev_ref order by grade_score desc ) FROM grades where grade_course_code_ref = 'SE_ADV_JS' limit 5
+
+-- Get the Class average for a course
+select 
+  avg(
+    EXTRACT(
+      EPOCH 
+      FROM 
+        TO_TIMESTAMP(session_end_time, 'HH24:MI:SS'):: TIME - TO_TIMESTAMP(
+          session_start_time, 'HH24:MI:SS'
+        ):: TIME
+    )/ 3600
+  ) as duration 
+from 
+  sessions as s 
+  left join courses as c on c.course_code = s.session_course_ref 
+where 
+  c.course_code = 'DT_RDBMS'
+  
+  
+-- Get a student full report of grades and attendances
+  
+-- Get a student full report of grades ,ranks per course  and attendances
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
