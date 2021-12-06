@@ -1,0 +1,60 @@
+--Easy qsts (no relations needed)
+--1- Get all enrolled students for a specific period,program,year ?
+select * from students s 
+where s.student_enrollment_status = 'completed' and s.student_population_period_ref = 'SPRING' and s.student_population_year_ref = '2021' and s.student_population_code_ref = 'DSA'
+
+--2- Get number of enrolled students for a specific period,program,year
+select s.student_enrollment_status, count(s.student_enrollment_status) from students s 
+where s.student_enrollment_status = 'completed' and s.student_population_period_ref = 'SPRING' and s.student_population_year_ref = '2021' and s.student_population_code_ref = 'DSA'
+group by student_enrollment_status 
+
+--3- Get All defined exams for a course from grades table
+select * from grades g 
+inner join exams e on g.grade_course_code_ref  = e.exam_course_code
+inner join courses c on g.grade_course_code_ref = c.course_code 
+where g.grade_course_code_ref = 'PG_PYTHON'
+
+--4-Get all grades for a student
+select g.grade_student_epita_email_ref , g.grade_score from grades g 
+where g.grade_student_epita_email_ref ='albina.glick@epita.fr'
+
+
+--5-Get all grades for a specific Exam
+
+select g.grade_course_code_ref , g.grade_score from grades g
+where g.grade_course_code_ref = 'SE_ADV_JS'
+
+--6-Get students Ranks in an Exam for a course
+select * , rank () over (order by g.grade_score desc  )  from grades g 
+where g.grade_course_code_ref ='DT_RDBMS' and g.grade_exam_type_ref = 'Lab'
+
+
+
+--7-Get students Ranks in all exams for a course
+
+select * , rank () over (order by g.grade_score desc  )  from grades g 
+where g.grade_course_code_ref ='DT_RDBMS'
+
+--8-Get students Rank in all exams in all courses
+
+select * , rank () over (order by g.grade_score desc  )  from grades g 
+
+--9-Get all courses for one program
+select * from programs p 
+where p.program_assignment = 'DSA'
+
+--10-Get courses in common between 2 programs
+select program_course_code_ref  from programs p  where p.program_assignment = 'DSA'
+intersect 
+select  program_course_code_ref  from programs p2 where program_assignment = 'SE'
+
+--p.program_assignment between 'DSA' and 'ISM'
+
+--11-Get all programs following a certain course
+select  * from programs p 
+where p.program_course_code_ref ='AI_DATA_SCIENCE_IN_PROD'
+
+
+--12- get course with the biggest duration
+select * from courses c 
+where duration = (select max(duration) from courses c2)
