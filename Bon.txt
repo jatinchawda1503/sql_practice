@@ -1,0 +1,13 @@
+/*Student report*/
+create view notereport as (
+	select c.name,s.firstname,s.lastname, sum((e.grade*e.weight)) as courseaverage
+    from student as s ,exam as e, course as c
+    where s.studentid=e.studentid and e.courseid=c.courseid
+    group by (s.firstname,s.lastname,c.name)
+);
+create view attendancereport as (
+	select s.starttime,st.firstname,st.lastname, a.marked
+    from student as st ,attendance as a, sessions as s
+    where st.studentid=a.studentid and a.sessionid=s.sessionid
+    order by a.marked desc /*List attended poeple first*/
+);
